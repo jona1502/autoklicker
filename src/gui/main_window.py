@@ -67,8 +67,8 @@ class MainWindow:
         # Click Interval
         self.var_hours = tk.StringVar(value="0")
         self.var_minutes = tk.StringVar(value="0")
-        self.var_seconds = tk.StringVar(value="30")
-        self.var_milliseconds = tk.StringVar(value="100")
+        self.var_seconds = tk.StringVar(value="0")
+        self.var_milliseconds = tk.StringVar(value="0")
 
         # Click Options
         self.var_mouse_button = tk.StringVar(value="Left")

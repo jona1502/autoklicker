@@ -9,8 +9,8 @@ class AppSettings:
     # Click Interval Defaults
     default_hours: int = 0
     default_minutes: int = 0
-    default_seconds: int = 30
-    default_milliseconds: int = 100
+    default_seconds: int = 0
+    default_milliseconds: int = 0
 
     # Click Options Defaults
     default_mouse_button: str = "left"  # "left", "right", "middle"
@@ -59,8 +59,8 @@ class AppSettings:
         return cls(
             default_hours=data.get("default_hours", 0),
             default_minutes=data.get("default_minutes", 0),
-            default_seconds=data.get("default_seconds", 30),
-            default_milliseconds=data.get("default_milliseconds", 100),
+            default_seconds=data.get("default_seconds", 0),
+            default_milliseconds=data.get("default_milliseconds", 0),
             default_mouse_button=data.get("default_mouse_button", "left"),
             default_click_type=data.get("default_click_type", "single"),
             default_repeat_count=data.get("default_repeat_count", 1),
