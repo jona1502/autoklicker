@@ -6,7 +6,7 @@ a = Analysis(
     ['src/main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('icons/mauszeiger.ico', 'icons')],  # Icon in EXE einbetten
     hiddenimports=[
         'pynput.keyboard._win32',
         'pynput.mouse._win32',
@@ -45,6 +45,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None  # Optional: Pfad zu icon.ico
+    icon='icons/mauszeiger.ico'
 )
 

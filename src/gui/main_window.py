@@ -26,9 +26,18 @@ class MainWindow:
             root: Tkinter Root-Window
         """
         self.root = root
-        self.root.title("OP Auto Clicker 3.0")
+        self.root.title("AutoKlicker")
         self.root.geometry("500x450")
         self.root.resizable(True, True)
+        
+        # Icon setzen (für Fenster und Taskleiste)
+        try:
+            import os
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'icons', 'mauszeiger.ico')
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
+        except Exception:
+            pass  # Falls Icon nicht gefunden wird, einfach ohne Icon
 
         # Services initialisieren
         self._mouse_controller = MouseController()
