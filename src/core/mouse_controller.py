@@ -1,7 +1,9 @@
 """MouseController - Maus-Steuerung mit pynput."""
+import ctypes
+from ctypes import wintypes
 from typing import Optional, Tuple
 from pynput import mouse
-from pynput.mouse import Button, Listener
+from pynput.mouse import Button
 
 
 class MouseController:
@@ -10,7 +12,6 @@ class MouseController:
     def __init__(self):
         self._mouse = mouse.Controller()
         self._picked_position: Optional[Tuple[int, int]] = None
-        self._listener: Optional[Listener] = None
 
     def get_current_position(self) -> Tuple[int, int]:
         """Gibt die aktuelle Mausposition zurück."""
@@ -26,8 +27,17 @@ class MouseController:
             position: Optional tuple (x, y). Wenn None, wird an aktueller Position geklickt.
         """
         # Position setzen falls angegeben
+        # Negative Koordinaten sind erlaubt (Multi-Monitor-Setups)
         if position is not None:
-            self._mouse.position = position
+            try:
+                self._mouse.position = position
+            except Exception as e:
+                # Falls pynput Probleme hat, Windows-API direkt verwenden
+                try:
+                    import ctypes
+                    ctypes.windll.user32.SetCursorPos(int(position[0]), int(position[1]))
+                except Exception:
+                    raise ValueError(f"Konnte Mausposition nicht setzen: {position}") from e
 
         # Button-Mapping
         button_map = {
@@ -48,32 +58,74 @@ class MouseController:
             # Default: single click
             self._mouse.click(mouse_button, 1)
 
-    def pick_location(self) -> Optional[Tuple[int, int]]:
+    def pick_location(self, ignore_rects: Optional[list[Tuple[int, int, int, int]]] = None) -> Optional[Tuple[int, int]]:
         """
-        Blockiert bis der User klickt und gibt dann die Position zurück.
-        Wird in einem separaten Thread aufgerufen.
-
+        Wartet auf einen Linksklick und gibt dann die Position zurück.
+        Verwendet direkte Windows-API-Abfrage (GetAsyncKeyState) für Zuverlässigkeit.
+        
+        Args:
+            ignore_rects: Optional Liste von (x, y, width, height) - Klicks in diesen Bereichen werden ignoriert
+        
         Returns:
             Tuple (x, y) der geklickten Position oder None wenn abgebrochen
         """
-        self._picked_position = None
-        self._listener = None
-
-        def on_click(x, y, button, pressed):
-            if pressed and button == Button.left:
-                self._picked_position = (x, y)
-                return False  # Listener stoppen
-
-        # Listener starten
-        self._listener = Listener(on_click=on_click)
-        self._listener.start()
-        self._listener.join()  # Warten bis Click erfolgt
-
-        return self._picked_position
-
-    def cancel_pick_location(self) -> None:
-        """Bricht das Pick Location ab."""
-        if self._listener is not None:
-            self._listener.stop()
-            self._listener = None
+        try:
+            import ctypes
+            import time
+            
+            user32 = ctypes.windll.user32
+            VK_LBUTTON = 0x01  # Linke Maustaste
+            
+            # Warten bis Maustaste losgelassen (falls gerade gedrückt)
+            while user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000:
+                time.sleep(0.01)
+            
+            # Warten auf Linksklick (Taste wird gedrückt)
+            timeout = 60  # 60 Sekunden Timeout
+            elapsed = 0
+            
+            while elapsed < timeout:
+                # Prüfen ob linke Maustaste gedrückt wurde
+                if user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000:
+                    # Maustaste ist gedrückt - Position holen
+                    class POINT(ctypes.Structure):
+                        _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
+                    
+                    point = POINT()
+                    user32.GetCursorPos(ctypes.byref(point))
+                    x, y = point.x, point.y
+                    
+                    # Prüfen ob in Ignore-Bereich
+                    if ignore_rects is not None:
+                        in_ignore_area = False
+                        for rect_x, rect_y, rect_w, rect_h in ignore_rects:
+                            if rect_x <= x <= rect_x + rect_w and rect_y <= y <= rect_y + rect_h:
+                                in_ignore_area = True
+                                break
+                        
+                        if in_ignore_area:
+                            # In Ignore-Bereich - warten bis Taste losgelassen
+                            while user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000:
+                                time.sleep(0.01)
+                            continue  # Weiter warten auf nächsten Klick
+                    
+                    # Gültiger Klick - warten bis Maustaste losgelassen
+                    while user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000:
+                        time.sleep(0.01)
+                    
+                    return (x, y)
+                
+                time.sleep(0.01)
+                elapsed += 0.01
+            
+            # Timeout
+            return None
+            
+        except Exception as e:
+            print(f"Fehler bei pick_location: {e}")
+            # Fallback: aktuelle Position
+            try:
+                return self.get_current_position()
+            except Exception:
+                return None
 

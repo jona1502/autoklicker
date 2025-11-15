@@ -27,7 +27,7 @@ class AppSettings:
 
     # Hotkey Settings
     start_hotkey: str = "f6"
-    stop_hotkey: str = "f6"
+    stop_hotkey: str = "f7"
     hotkey_modifiers: list[str] = field(default_factory=list)  # ["ctrl", "alt", "shift"]
 
     # General Settings

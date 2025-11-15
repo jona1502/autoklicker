@@ -129,16 +129,30 @@ class ClickerEngine:
         self._thread.start()
 
     def stop(self):
-        """Stoppt die Click-Engine."""
+        """Stoppt die Click-Engine - garantiert."""
         if not self._is_running:
             return
 
+        # Stop-Event setzen (wichtig: ZUERST!)
         self._stop_event.set()
+        
+        # Flag setzen
         self._is_running = False
 
-        # Warten bis Thread beendet ist (max 1 Sekunde)
+        # Thread sicher beenden
         if self._thread is not None and self._thread.is_alive():
-            self._thread.join(timeout=1.0)
+            # Warten bis Thread beendet ist (max 2 Sekunden)
+            self._thread.join(timeout=2.0)
+            
+            # Falls Thread noch läuft: Force-Kill (letzter Ausweg)
+            if self._thread.is_alive():
+                # Thread ist noch aktiv - das sollte nicht passieren, aber sicherheitshalber
+                import sys
+                import traceback
+                print("WARNUNG: Thread konnte nicht sauber beendet werden!", file=sys.stderr)
+                traceback.print_exc()
+                # Thread-Referenz löschen - wird beim nächsten Start neu erstellt
+                self._thread = None
 
     def _click_loop(self):
         """Haupt-Loop im Thread - führt die Clicks aus."""
@@ -147,12 +161,22 @@ class ClickerEngine:
 
         try:
             while not self._stop_event.is_set():
+                # Prüfen ob gestoppt werden soll (vor jedem Click)
+                if self._stop_event.is_set():
+                    break
+                
                 # Click ausführen
-                self._mouse_controller.click(
-                    button=self._mouse_button,
-                    click_type=self._click_type,
-                    position=target_pos
-                )
+                try:
+                    self._mouse_controller.click(
+                        button=self._mouse_button,
+                        click_type=self._click_type,
+                        position=target_pos
+                    )
+                except Exception:
+                    # Bei Fehler beim Click: trotzdem weitermachen, aber prüfen ob gestoppt
+                    if self._stop_event.is_set():
+                        break
+                    continue
 
                 # Callback aufrufen
                 if self._on_click_callback:
@@ -166,16 +190,25 @@ class ClickerEngine:
                 # Prüfen ob Wiederholungsanzahl erreicht
                 if self._repeat_count > 0 and click_count >= self._repeat_count:
                     break
+                
+                # Nochmal prüfen ob gestoppt werden soll (nach Click, vor Wartezeit)
+                if self._stop_event.is_set():
+                    break
 
                 # Warten auf nächstes Intervall
                 interval_seconds = self._interval.total_seconds()
                 if interval_seconds > 0:
-                    # In kleine Schritte aufteilen für responsives Stoppen
+                    # In sehr kleine Schritte aufteilen für sofortiges Stoppen
                     elapsed = 0.0
-                    step = min(0.1, interval_seconds / 10)  # Max 100ms Schritte
+                    step = 0.05  # 50ms Schritte für sehr responsives Stoppen
                     while elapsed < interval_seconds and not self._stop_event.is_set():
-                        time.sleep(min(step, interval_seconds - elapsed))
+                        sleep_time = min(step, interval_seconds - elapsed)
+                        time.sleep(sleep_time)
                         elapsed += step
+                        
+                        # Zusätzliche Prüfung nach jedem Schritt
+                        if self._stop_event.is_set():
+                            break
 
         finally:
             self._is_running = False

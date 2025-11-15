@@ -80,25 +80,21 @@ class MainWindow:
         interval_frame = ttk.LabelFrame(self.root, text="Click interval", padding=10)
         interval_frame.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E), padx=10, pady=5)
 
-        ttk.Label(interval_frame, text="0").grid(row=0, column=0)
         self.entry_hours = ttk.Entry(interval_frame, textvariable=self.var_hours, width=5)
-        self.entry_hours.grid(row=0, column=1, padx=2)
-        ttk.Label(interval_frame, text="hours").grid(row=0, column=2, padx=5)
+        self.entry_hours.grid(row=0, column=0, padx=2)
+        ttk.Label(interval_frame, text="hours").grid(row=0, column=1, padx=5)
 
-        ttk.Label(interval_frame, text="0").grid(row=0, column=3)
         self.entry_minutes = ttk.Entry(interval_frame, textvariable=self.var_minutes, width=5)
-        self.entry_minutes.grid(row=0, column=4, padx=2)
-        ttk.Label(interval_frame, text="mins").grid(row=0, column=5, padx=5)
+        self.entry_minutes.grid(row=0, column=2, padx=2)
+        ttk.Label(interval_frame, text="mins").grid(row=0, column=3, padx=5)
 
-        ttk.Label(interval_frame, text="30").grid(row=0, column=6)
         self.entry_seconds = ttk.Entry(interval_frame, textvariable=self.var_seconds, width=5)
-        self.entry_seconds.grid(row=0, column=7, padx=2)
-        ttk.Label(interval_frame, text="secs").grid(row=0, column=8, padx=5)
+        self.entry_seconds.grid(row=0, column=4, padx=2)
+        ttk.Label(interval_frame, text="secs").grid(row=0, column=5, padx=5)
 
-        ttk.Label(interval_frame, text="100").grid(row=0, column=9)
         self.entry_milliseconds = ttk.Entry(interval_frame, textvariable=self.var_milliseconds, width=5)
-        self.entry_milliseconds.grid(row=0, column=10, padx=2)
-        ttk.Label(interval_frame, text="milliseconds").grid(row=0, column=11, padx=5)
+        self.entry_milliseconds.grid(row=0, column=6, padx=2)
+        ttk.Label(interval_frame, text="milliseconds").grid(row=0, column=7, padx=5)
 
         # Click Options Section
         options_frame = ttk.LabelFrame(self.root, text="Click options", padding=10)
@@ -209,25 +205,59 @@ class MainWindow:
             self.entry_pick_y.config(state="disabled")
 
     def _pick_location(self):
-        """Öffnet den Location-Picker."""
-        # Info-Dialog anzeigen
-        messagebox.showinfo("Pick Location", 
-                          "Klicken Sie auf die gewünschte Position auf dem Bildschirm.\n"
-                          "Das Fenster wird kurz ausgeblendet.")
-        
-        # Fenster kurz verstecken (damit User auf Desktop klicken kann)
+        """Öffnet den Location-Picker - wartet auf Linksklick."""
+        # Hauptfenster sofort verstecken
         self.root.withdraw()
         self.root.update()
         
+        # Overlay-Fenster erstellen (transparent, topmost, fullscreen)
+        overlay = tk.Toplevel(self.root)
+        overlay.attributes('-alpha', 0.3)  # Semi-transparent
+        overlay.attributes('-topmost', True)
+        overlay.attributes('-fullscreen', True)
+        overlay.configure(bg='black')
+        
+        # Anweisungstext in der Mitte
+        label = tk.Label(
+            overlay,
+            text="LINKSKLICK AN GEWÜNSCHTER POSITION\n\n(ESC zum Abbrechen)",
+            font=("Arial", 24, "bold"),
+            fg="white",
+            bg="black"
+        )
+        label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Abbrechen mit ESC
+        cancelled = [False]
+        def on_escape(event):
+            cancelled[0] = True
+            overlay.destroy()
+            self.root.deiconify()
+        
+        overlay.bind('<Escape>', on_escape)
+        overlay.update()
+        
+        # Auf Linksklick warten (in Thread)
         def pick_in_thread():
             try:
+                import time
+                time.sleep(0.2)  # Kurze Pause damit Overlay sichtbar ist
+                
+                # Auf Linksklick warten
                 position = self._mouse_controller.pick_location()
-                if position:
-                    self.root.after(0, lambda: self._on_location_picked(position))
+                
+                # Overlay schließen
+                self.root.after(0, overlay.destroy)
+                
+                if position and not cancelled[0]:
+                    # Position bestätigen
+                    self.root.after(0, lambda pos=position: self._on_location_picked(pos))
                 else:
                     self.root.after(0, self.root.deiconify)
             except Exception as e:
-                self.root.after(0, lambda: self._on_pick_error(str(e)))
+                error_msg = str(e)
+                self.root.after(0, overlay.destroy)
+                self.root.after(0, lambda err=error_msg: self._on_pick_error(err))
         
         thread = threading.Thread(target=pick_in_thread, daemon=True)
         thread.start()
@@ -238,7 +268,7 @@ class MainWindow:
         self.var_pick_x.set(str(x))
         self.var_pick_y.set(str(y))
         self.root.deiconify()  # Fenster wieder anzeigen
-        messagebox.showinfo("Position ausgewählt", f"Position gesetzt: X={x}, Y={y}")
+        messagebox.showinfo("Position ausgewählt", f"Position gesetzt:\nX = {x}\nY = {y}")
 
     def _on_pick_error(self, error: str):
         """Wird aufgerufen wenn ein Fehler beim Pick Location auftritt."""
@@ -341,11 +371,10 @@ class MainWindow:
                 try:
                     x = int(self.var_pick_x.get())
                     y = int(self.var_pick_y.get())
-                    if x < 0 or y < 0:
-                        messagebox.showerror("Fehler", "Koordinaten müssen positiv sein!")
-                        return False
+                    # Negative Koordinaten sind erlaubt (Multi-Monitor-Setups)
+                    # Nur prüfen ob es gültige Zahlen sind
                 except ValueError:
-                    messagebox.showerror("Fehler", "Ungültige Koordinaten!")
+                    messagebox.showerror("Fehler", "Ungültige Koordinaten! Bitte geben Sie gültige Zahlen ein.")
                     return False
 
             return True
@@ -355,14 +384,20 @@ class MainWindow:
 
     def _register_hotkeys(self):
         """Registriert die Hotkeys."""
-        def toggle_clicking():
-            if self._clicker_engine.is_running:
-                self._stop_clicking()
-            else:
+        def start_clicking():
+            if not self._clicker_engine.is_running:
                 self._start_clicking()
 
-        self._hotkey_manager.set_start_hotkey("f6", None, toggle_clicking)
-        self._hotkey_manager.set_stop_hotkey("f6", None, toggle_clicking)
+        def stop_clicking():
+            if self._clicker_engine.is_running:
+                self._stop_clicking()
+
+        self._hotkey_manager.set_start_hotkey("f6", None, start_clicking)
+        self._hotkey_manager.set_stop_hotkey("f7", None, stop_clicking)
+        
+        # UI aktualisieren
+        self.btn_start.config(text="Start (F6)")
+        self.btn_stop.config(text="Stop (F7)")
 
     def _open_hotkey_dialog(self):
         """Öffnet den Hotkey-Settings Dialog."""
@@ -441,16 +476,31 @@ class MainWindow:
 
     def on_closing(self):
         """Wird aufgerufen wenn das Fenster geschlossen wird."""
-        # Clicker stoppen
-        if self._clicker_engine.is_running:
-            self._clicker_engine.stop()
-
-        # Hotkeys entfernen
-        self._hotkey_manager.unregister_all()
-
-        # Settings speichern
-        self._save_settings()
-
-        # Fenster schließen
-        self.root.destroy()
+        try:
+            # ZUERST Clicker stoppen
+            if self._clicker_engine.is_running:
+                self._clicker_engine.stop()
+            
+            # Dann Hotkeys entfernen (WICHTIG: erst nach Stoppen!)
+            try:
+                self._hotkey_manager.unregister_all()
+            except Exception:
+                pass
+            
+            # Settings speichern
+            try:
+                self._save_settings()
+            except Exception:
+                pass
+            
+            # Fenster schließen
+            self.root.quit()
+            self.root.destroy()
+        except Exception:
+            # Notfall: Fenster trotzdem schließen
+            try:
+                self.root.quit()
+                self.root.destroy()
+            except Exception:
+                pass
 
