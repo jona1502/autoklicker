@@ -182,6 +182,18 @@ class MainWindow:
         self.btn_record = ttk.Button(buttons_frame, text="Record & Playback", command=self._open_record_window,
                                      width=20)
         self.btn_record.grid(row=1, column=1, padx=5, pady=5)
+        
+        # Hotkey-Hinweis (deutlich sichtbar)
+        hotkey_info_frame = ttk.Frame(self.root)
+        hotkey_info_frame.grid(row=4, column=0, columnspan=2, pady=5)
+        
+        hotkey_label = ttk.Label(
+            hotkey_info_frame,
+            text="⚠️ F7 = STOP (Notfall-Stopp!)",
+            foreground="red",
+            font=("Arial", 10, "bold")
+        )
+        hotkey_label.pack()
 
         # Grid weights für Resizing
         self.root.columnconfigure(0, weight=1)

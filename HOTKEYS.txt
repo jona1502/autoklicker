@@ -1,0 +1,45 @@
+╔═══════════════════════════════════════╗
+║     AUTOKLICKER - HOTKEY ÜBERSICHT    ║
+╚═══════════════════════════════════════╝
+
+⚠️ WICHTIG - MERKE DIR DIESE HOTKEYS! ⚠️
+
+┌───────────────────────────────────────┐
+│  F6 = START                           │
+│  F7 = STOP                            │
+└───────────────────────────────────────┘
+
+═══════════════════════════════════════
+  DETAILLIERTE BESCHREIBUNG
+═══════════════════════════════════════
+
+🟢 F6 - START
+   Startet den AutoKlicker mit den
+   konfigurierten Einstellungen.
+
+🔴 F7 - STOP (NOTFALL-STOPP!)
+   Stoppt den AutoKlicker sofort.
+   Benutze F7 wenn der Klicker nicht
+   mehr aufhört!
+
+═══════════════════════════════════════
+  HOTKEYS ÄNDERN
+═══════════════════════════════════════
+
+Du kannst die Hotkeys in der App ändern:
+1. Klick auf "Hotkey setting"
+2. Gib neue Hotkeys ein
+3. Optional: Wähle Modifier (Ctrl/Alt/Shift)
+4. Klick auf "OK"
+
+═══════════════════════════════════════
+  HINWEIS
+═══════════════════════════════════════
+
+Für globale Hotkeys kann es sein, dass
+du die App mit Admin-Rechten starten
+musst (Rechtsklick → Als Admin ausführen)
+
+═══════════════════════════════════════
+
+

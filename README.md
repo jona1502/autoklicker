@@ -13,10 +13,14 @@ Ein professioneller AutoKlicker für Windows, entwickelt in Python mit tkinter G
   - Bis gestoppt (unendlich)
 - **Cursor-Position**:
   - Aktuelle Position
-  - Feste Koordinaten (Pick Location)
-- **Hotkeys**: Konfigurierbare globale Hotkeys (Standard: F6)
+  - Feste Koordinaten (Pick Location mit transparentem Overlay)
+- **Hotkeys**: 
+  - **F6 = Start** (AutoKlicker starten)
+  - **F7 = Stop** (AutoKlicker stoppen)
+  - Konfigurierbar über "Hotkey setting"
 - **Record & Playback**: Aufzeichnen und Abspielen von Click-Sequenzen
 - **Settings-Persistierung**: Automatisches Speichern und Laden der Einstellungen
+- **Multi-Monitor Support**: Unterstützt negative Koordinaten für mehrere Bildschirme
 
 ## Installation
 
@@ -49,11 +53,17 @@ python src/main.py
 
 4. **Position wählen**:
    - "Current location": Verwendet die aktuelle Mausposition beim Start
-   - "Pick location": Klicken Sie auf "Pick location" und wählen Sie eine Position
+   - "Pick location": Klicken Sie auf "Pick location" → transparentes Overlay erscheint → Linksklick an gewünschter Position
 
-5. **Starten**: Klicken Sie auf "Start (F6)" oder drücken Sie F6
+5. **Starten**: Klicken Sie auf "Start (F6)" oder drücken Sie **F6**
 
-6. **Stoppen**: Klicken Sie auf "Stop (F6)" oder drücken Sie F6 erneut
+6. **Stoppen**: Klicken Sie auf "Stop (F7)" oder drücken Sie **F7**
+
+**⚠️ WICHTIG: Merke dir die Hotkeys!**
+- **F6 = Start**
+- **F7 = Stop** (zum Notfall-Stoppen!)
+
+Wenn der AutoKlicker nicht mehr stoppt, drücke einfach **F7**!
 
 ### Hotkeys konfigurieren
 
