@@ -10,7 +10,7 @@ class HotkeyManager:
         """Initialisiert den HotkeyManager."""
         self._registered_hotkeys: dict[str, Callable] = {}
         self._start_hotkey = "f6"
-        self._stop_hotkey = "f6"
+        self._stop_hotkey = "f7"
         self._modifiers: List[str] = []
 
     def register_hotkey(self, key: str, callback: Callable, modifiers: Optional[List[str]] = None):

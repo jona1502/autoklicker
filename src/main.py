@@ -8,14 +8,13 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.gui.main_window import MainWindow
+from src.gui.theme import apply_theme
 
 
 def main():
     """Hauptfunktion der Anwendung."""
-    # Root-Window erstellen
     root = tk.Tk()
-    
-    # MainWindow erstellen
+    apply_theme(root)
     app = MainWindow(root)
     
     # Window-Close-Handler

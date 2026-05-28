@@ -126,6 +126,38 @@ autoklicker/
 - Auf Windows funktionieren Hotkeys am zuverlässigsten
 - Die Settings werden automatisch in `data/settings.json` gespeichert
 
+## GitHub Release (EXE)
+
+Bei jedem Version-Tag baut GitHub Actions automatisch `AutoKlicker.exe` und veröffentlicht sie als Release.
+
+```bash
+# Version in src/gui/theme.py anpassen (APP_VERSION), dann:
+git add .
+git commit -m "Release v1.1.0"
+git tag v1.1.0
+git push origin main
+git push origin v1.1.0
+```
+
+Nach dem Push des Tags erscheint unter **Releases** auf GitHub die fertige EXE zum Download.
+
+Lokaler Build (ohne GitHub):
+
+```bash
+build.bat
+```
+
+## Python oder C#?
+
+| | Python (aktuell) | C# (WPF/WinUI) |
+|---|---|---|
+| Entwicklung | Schnell, Code bleibt nutzbar | Neuschreiben nötig |
+| EXE-Größe | ~15–25 MB (PyInstaller) | Kleiner (~2–5 MB) |
+| UI | tkinter, funktional | Moderner, natives Windows-Look |
+| Hotkeys/Maus | pynput + keyboard | WinAPI / InputSimulator |
+
+**Empfehlung:** Bei Python bleiben, solange Features und UI im Griff sind. Ein Wechsel zu C# lohnt sich vor allem für kleinere EXEs, Code-Signing und ein natives Windows-UI — nicht zwingend für die Kernfunktion.
+
 ## Lizenz
 
 Dieses Projekt ist für den persönlichen Gebrauch bestimmt.

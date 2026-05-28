@@ -69,7 +69,7 @@ class AppSettings:
             default_pick_x=data.get("default_pick_x", 0),
             default_pick_y=data.get("default_pick_y", 0),
             start_hotkey=data.get("start_hotkey", "f6"),
-            stop_hotkey=data.get("stop_hotkey", "f6"),
+            stop_hotkey=data.get("stop_hotkey", "f7"),
             hotkey_modifiers=data.get("hotkey_modifiers", []),
             remember_last_settings=data.get("remember_last_settings", True)
         )

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoKlicker</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="header">
+    <span class="title">AutoKlicker</span>
+    <span class="subtitle">Browser Extension</span>
+  </div>
+
+  <div class="section">
+    <label class="label">Element-Selector (CSS)</label>
+    <div class="input-row">
+      <input
+        id="selectorInput"
+        type="text"
+        class="input"
+        placeholder="#button-id  /  .btn-class  /  button"
+        spellcheck="false"
+      />
+      <button id="pickBtn" class="btn btn-pick" title="Element im Tab auswählen">
+        &#x1F3AF;
+      </button>
+    </div>
+    <div id="selectorStatus" class="status-hint"></div>
+  </div>
+
+  <div class="section">
+    <label class="label">Klick-Interval</label>
+    <div class="interval-row">
+      <div class="interval-group">
+        <input id="inputHours" type="number" class="input interval-input" min="0" max="99" value="0" />
+        <span class="interval-label">h</span>
+      </div>
+      <div class="interval-group">
+        <input id="inputMinutes" type="number" class="input interval-input" min="0" max="59" value="0" />
+        <span class="interval-label">min</span>
+      </div>
+      <div class="interval-group">
+        <input id="inputSeconds" type="number" class="input interval-input" min="0" max="59" value="1" />
+        <span class="interval-label">sek</span>
+      </div>
+      <div class="interval-group">
+        <input id="inputMs" type="number" class="input interval-input" min="0" max="999" value="0" />
+        <span class="interval-label">ms</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <label class="label">Klick-Typ</label>
+    <div class="radio-row">
+      <label class="radio-label">
+        <input type="radio" name="clickType" value="left" checked /> Links
+      </label>
+      <label class="radio-label">
+        <input type="radio" name="clickType" value="right" /> Rechts
+      </label>
+      <label class="radio-label">
+        <input type="radio" name="clickType" value="double" /> Doppel
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <label class="label">Anzahl Klicks <span class="hint">(0 = unbegrenzt)</span></label>
+    <input id="repeatInput" type="number" class="input" min="0" value="0" />
+  </div>
+
+  <div id="statsBar" class="stats-bar hidden">
+    Geklickt: <span id="clickCount">0</span>
+    <span id="limitInfo"></span>
+  </div>
+
+  <div class="btn-row">
+    <button id="startBtn" class="btn btn-start">&#9654; Start</button>
+    <button id="stopBtn" class="btn btn-stop hidden">&#9646;&#9646; Stop</button>
+  </div>
+
+  <div id="errorMsg" class="error hidden"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

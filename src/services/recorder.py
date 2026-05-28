@@ -213,3 +213,7 @@ class RecorderService:
         """Löscht alle aufgezeichneten Events."""
         self._recorded_events.clear()
 
+    def load_events(self, events: List[ClickEvent]) -> None:
+        """Ersetzt die aufgezeichneten Events durch eine geladene Liste."""
+        self._recorded_events = list(events)
+

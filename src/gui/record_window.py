@@ -1,124 +1,117 @@
 """RecordWindow - GUI für Record & Playback Funktionalität."""
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import threading
-from typing import Optional
 import json
-from pathlib import Path
 
 from src.services.recorder import RecorderService
 from src.models.click_event import ClickEvent
+from src.gui.theme import apply_theme
 
 
 class RecordWindow:
     """Fenster für Record & Playback Funktionalität."""
 
     def __init__(self, parent: tk.Tk, recorder_service: RecorderService):
-        """
-        Initialisiert das Record-Window.
-
-        Args:
-            parent: Parent-Window
-            recorder_service: RecorderService Instanz
-        """
         self.parent = parent
         self._recorder_service = recorder_service
 
-        # Fenster erstellen
         self.window = tk.Toplevel(parent)
-        self.window.title("Record & Playback")
-        self.window.geometry("500x400")
+        self.window.title("Aufnahme & Wiedergabe")
+        self.window.geometry("680x520")
+        self.window.minsize(620, 460)
         self.window.resizable(True, True)
         self.window.transient(parent)
+        apply_theme(self.window)
 
-        # Variablen
-        self.var_event_count = tk.StringVar(value="0 events")
+        self.var_event_count = tk.StringVar(value="0 Ereignisse")
         self.var_status = tk.StringVar(value="Bereit")
 
-        # UI erstellen
         self._create_widgets()
-
-        # Callbacks setzen
         self._setup_callbacks()
-
-        # Zentrieren
         self._center_window()
 
     def _create_widgets(self):
-        """Erstellt die UI-Widgets."""
-        # Status
-        status_frame = ttk.Frame(self.window)
-        status_frame.pack(fill=tk.X, padx=10, pady=10)
+        container = ttk.Frame(self.window, padding=16)
+        container.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(status_frame, text="Status:").pack(side=tk.LEFT, padx=5)
-        label_status = ttk.Label(status_frame, textvariable=self.var_status, foreground="blue")
-        label_status.pack(side=tk.LEFT, padx=5)
+        header = ttk.Frame(container, style="Surface.TFrame", padding=(14, 12))
+        header.pack(fill=tk.X, pady=(0, 12))
+        header.columnconfigure(0, weight=1)
+        ttk.Label(header, text="Aufnahme & Wiedergabe", style="HeaderTitle.TLabel").grid(row=0, column=0, sticky=tk.W)
+        ttk.Label(header, textvariable=self.var_status, style="HeaderSubtitle.TLabel").grid(
+            row=1, column=0, sticky=tk.W, pady=(2, 0)
+        )
+        ttk.Label(header, textvariable=self.var_event_count, style="Kpi.TLabel").grid(
+            row=0, column=1, rowspan=2, sticky=tk.E
+        )
 
-        ttk.Label(status_frame, textvariable=self.var_event_count).pack(side=tk.RIGHT, padx=5)
+        list_frame = ttk.LabelFrame(container, text=" Aufgezeichnete Klicks ", padding=10)
+        list_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        # Event-Liste
-        list_frame = ttk.LabelFrame(self.window, text="Recorded Events", padding=10)
-        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        # Treeview für Events
         columns = ("#", "Position", "Button", "Type", "Delay")
-        self.tree_events = ttk.Treeview(list_frame, columns=columns, show="headings", height=10)
-        self.tree_events.pack(fill=tk.BOTH, expand=True)
+        self.tree_events = ttk.Treeview(list_frame, columns=columns, show="headings", height=12)
+        self.tree_events.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Spalten konfigurieren
         self.tree_events.heading("#", text="#")
-        self.tree_events.heading("Position", text="Position (X, Y)")
-        self.tree_events.heading("Button", text="Button")
-        self.tree_events.heading("Type", text="Type")
-        self.tree_events.heading("Delay", text="Delay (s)")
+        self.tree_events.heading("Position", text="Position")
+        self.tree_events.heading("Button", text="Taste")
+        self.tree_events.heading("Type", text="Typ")
+        self.tree_events.heading("Delay", text="Pause (s)")
 
-        self.tree_events.column("#", width=50)
-        self.tree_events.column("Position", width=120)
+        self.tree_events.column("#", width=40, anchor=tk.CENTER)
+        self.tree_events.column("Position", width=130)
         self.tree_events.column("Button", width=80)
         self.tree_events.column("Type", width=80)
-        self.tree_events.column("Delay", width=100)
+        self.tree_events.column("Delay", width=90, anchor=tk.E)
 
-        # Scrollbar
         scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.tree_events.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.tree_events.configure(yscrollcommand=scrollbar.set)
 
-        # Buttons
-        button_frame = ttk.Frame(self.window)
-        button_frame.pack(fill=tk.X, padx=10, pady=10)
+        btn_container = ttk.Frame(container)
+        btn_container.pack(fill=tk.X)
+        btn_container.columnconfigure(0, weight=1)
+        btn_container.columnconfigure(1, weight=1)
+        btn_container.columnconfigure(2, weight=1)
 
-        # Record Buttons
-        record_frame = ttk.LabelFrame(button_frame, text="Record", padding=5)
-        record_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        record_frame = ttk.LabelFrame(btn_container, text=" Aufnahme ", padding=10)
+        record_frame.grid(row=0, column=0, sticky=tk.EW, padx=(0, 6))
+        record_frame.columnconfigure(0, weight=1)
+        record_frame.columnconfigure(1, weight=1)
+        self.btn_start_record = ttk.Button(
+            record_frame, text="Aufnahme starten", command=self._start_recording, style="Accent.TButton"
+        )
+        self.btn_start_record.grid(row=0, column=0, sticky=tk.EW, padx=(0, 4))
+        self.btn_stop_record = ttk.Button(
+            record_frame, text="Aufnahme stoppen", command=self._stop_recording, state="disabled"
+        )
+        self.btn_stop_record.grid(row=0, column=1, sticky=tk.EW, padx=(4, 0))
 
-        self.btn_start_record = ttk.Button(record_frame, text="Start Recording", command=self._start_recording)
-        self.btn_start_record.pack(side=tk.LEFT, padx=5)
+        playback_frame = ttk.LabelFrame(btn_container, text=" Wiedergabe ", padding=10)
+        playback_frame.grid(row=0, column=1, sticky=tk.EW, padx=6)
+        playback_frame.columnconfigure(0, weight=1)
+        playback_frame.columnconfigure(1, weight=1)
+        self.btn_play = ttk.Button(
+            playback_frame, text="Abspielen", command=self._play_sequence, style="Success.TButton"
+        )
+        self.btn_play.grid(row=0, column=0, sticky=tk.EW, padx=(0, 4))
+        self.btn_stop_play = ttk.Button(playback_frame, text="Stopp", command=self._stop_playback, state="disabled")
+        self.btn_stop_play.grid(row=0, column=1, sticky=tk.EW, padx=(4, 0))
 
-        self.btn_stop_record = ttk.Button(record_frame, text="Stop Recording", command=self._stop_recording,
-                                         state="disabled")
-        self.btn_stop_record.pack(side=tk.LEFT, padx=5)
-
-        # Playback Buttons
-        playback_frame = ttk.LabelFrame(button_frame, text="Playback", padding=5)
-        playback_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-
-        self.btn_play = ttk.Button(playback_frame, text="Play", command=self._play_sequence)
-        self.btn_play.pack(side=tk.LEFT, padx=5)
-
-        self.btn_stop_play = ttk.Button(playback_frame, text="Stop", command=self._stop_playback,
-                                       state="disabled")
-        self.btn_stop_play.pack(side=tk.LEFT, padx=5)
-
-        # File Buttons
-        file_frame = ttk.LabelFrame(button_frame, text="File", padding=5)
-        file_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-
-        ttk.Button(file_frame, text="Save", command=self._save_sequence).pack(side=tk.LEFT, padx=5)
-        ttk.Button(file_frame, text="Load", command=self._load_sequence).pack(side=tk.LEFT, padx=5)
-        ttk.Button(file_frame, text="Clear", command=self._clear_events).pack(side=tk.LEFT, padx=5)
+        file_frame = ttk.LabelFrame(btn_container, text=" Datei ", padding=10)
+        file_frame.grid(row=0, column=2, sticky=tk.EW, padx=(6, 0))
+        file_frame.columnconfigure(0, weight=1)
+        file_frame.columnconfigure(1, weight=1)
+        file_frame.columnconfigure(2, weight=1)
+        ttk.Button(file_frame, text="Speichern", command=self._save_sequence).grid(
+            row=0, column=0, sticky=tk.EW, padx=(0, 4)
+        )
+        ttk.Button(file_frame, text="Laden", command=self._load_sequence).grid(row=0, column=1, sticky=tk.EW, padx=4)
+        ttk.Button(file_frame, text="Leeren", command=self._clear_events).grid(
+            row=0, column=2, sticky=tk.EW, padx=(4, 0)
+        )
 
     def _setup_callbacks(self):
-        """Richtet Callbacks für den Recorder ein."""
         def on_record(count: int):
             self.window.after(0, lambda: self._on_event_recorded(count))
 
@@ -133,134 +126,115 @@ class RecordWindow:
         self._recorder_service.set_on_finished_callback(on_finished)
 
     def _start_recording(self):
-        """Startet die Aufzeichnung."""
         self._recorder_service.start_recording()
-        self.var_status.set("Recording...")
+        self.var_status.set("Aufnahme läuft...")
         self.btn_start_record.config(state="disabled")
         self.btn_stop_record.config(state="normal")
 
     def _stop_recording(self):
-        """Stoppt die Aufzeichnung."""
         events = self._recorder_service.stop_recording()
-        self.var_status.set(f"Recording stopped - {len(events)} events")
+        self.var_status.set(f"Aufnahme beendet ({len(events)} Ereignisse)")
         self.btn_start_record.config(state="normal")
         self.btn_stop_record.config(state="disabled")
         self._update_event_list()
 
     def _play_sequence(self):
-        """Spielt die Sequenz ab."""
         events = self._recorder_service.recorded_events
         if not events:
-            messagebox.showwarning("Warnung", "Keine Events zum Abspielen vorhanden!")
+            messagebox.showwarning("Hinweis", "Keine Ereignisse zum Abspielen vorhanden!")
             return
 
         self._recorder_service.playback(events, repeat=False)
-        self.var_status.set("Playing...")
+        self.var_status.set("Wiedergabe läuft...")
         self.btn_play.config(state="disabled")
         self.btn_stop_play.config(state="normal")
 
     def _stop_playback(self):
-        """Stoppt das Abspielen."""
         self._recorder_service.stop_playback()
-        self.var_status.set("Playback stopped")
+        self.var_status.set("Wiedergabe gestoppt")
         self.btn_play.config(state="normal")
         self.btn_stop_play.config(state="disabled")
 
     def _on_event_recorded(self, count: int):
-        """Wird aufgerufen wenn ein Event aufgezeichnet wurde."""
-        self.var_event_count.set(f"{count} events")
+        self.var_event_count.set(f"{count} Ereignisse")
         self._update_event_list()
 
     def _on_playback_progress(self, current: int, total: int):
-        """Wird aufgerufen während des Abspielens."""
-        self.var_status.set(f"Playing... {current}/{total}")
+        self.var_status.set(f"Wiedergabe {current}/{total}")
 
     def _on_playback_finished(self):
-        """Wird aufgerufen wenn das Abspielen beendet ist."""
-        self.var_status.set("Playback finished")
+        self.var_status.set("Wiedergabe beendet")
         self.btn_play.config(state="normal")
         self.btn_stop_play.config(state="disabled")
 
     def _update_event_list(self):
-        """Aktualisiert die Event-Liste."""
-        # Alte Einträge löschen
         for item in self.tree_events.get_children():
             self.tree_events.delete(item)
 
-        # Events hinzufügen
         events = self._recorder_service.recorded_events
         for i, event in enumerate(events, 1):
-            self.tree_events.insert("", tk.END, values=(
-                i,
-                f"({event.position[0]}, {event.position[1]})",
-                event.button.capitalize(),
-                event.click_type.capitalize(),
-                f"{event.delay_from_previous:.3f}"
-            ))
+            self.tree_events.insert(
+                "",
+                tk.END,
+                values=(
+                    i,
+                    f"({event.position[0]}, {event.position[1]})",
+                    event.button.capitalize(),
+                    event.click_type.capitalize(),
+                    f"{event.delay_from_previous:.3f}",
+                ),
+            )
 
-        self.var_event_count.set(f"{len(events)} events")
+        self.var_event_count.set(f"{len(events)} Ereignisse")
 
     def _save_sequence(self):
-        """Speichert die Sequenz in eine Datei."""
         events = self._recorder_service.recorded_events
         if not events:
-            messagebox.showwarning("Warnung", "Keine Events zum Speichern vorhanden!")
+            messagebox.showwarning("Hinweis", "Keine Ereignisse zum Speichern vorhanden!")
             return
 
         filename = filedialog.asksaveasfilename(
             defaultextension=".json",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+            filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")],
         )
 
         if filename:
             try:
                 data = [event.to_dict() for event in events]
-                with open(filename, 'w', encoding='utf-8') as f:
+                with open(filename, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
-                messagebox.showinfo("Erfolg", f"Sequenz gespeichert: {filename}")
+                messagebox.showinfo("Erfolg", f"Sequenz gespeichert:\n{filename}")
             except Exception as e:
                 messagebox.showerror("Fehler", f"Fehler beim Speichern: {e}")
 
     def _load_sequence(self):
-        """Lädt eine Sequenz aus einer Datei."""
         filename = filedialog.askopenfilename(
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+            filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")]
         )
 
         if filename:
             try:
-                with open(filename, 'r', encoding='utf-8') as f:
+                with open(filename, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                 events = [ClickEvent.from_dict(item) for item in data]
-                # Events zum Recorder hinzufügen (ersetzen)
-                self._recorder_service.clear_events()
-                for event in events:
-                    # Events müssen manuell hinzugefügt werden
-                    # Da recorder.record_click verwendet wird, müssen wir das anders machen
-                    # Für jetzt: Events direkt setzen (wenn möglich)
-                    pass
-
-                # Workaround: Events in Recorder speichern
-                # Da RecorderService keine direkte Methode hat, verwenden wir einen Workaround
-                messagebox.showinfo("Info", f"{len(data)} Events geladen. Verwenden Sie 'Start Recording' und klicken Sie die Events manuell.")
+                self._recorder_service.load_events(events)
                 self._update_event_list()
+                self.var_status.set(f"{len(events)} Ereignisse geladen")
+                messagebox.showinfo("Erfolg", f"{len(events)} Ereignisse geladen.")
             except Exception as e:
                 messagebox.showerror("Fehler", f"Fehler beim Laden: {e}")
 
     def _clear_events(self):
-        """Löscht alle Events."""
-        if messagebox.askyesno("Bestätigung", "Möchten Sie wirklich alle Events löschen?"):
+        if messagebox.askyesno("Bestätigung", "Alle Ereignisse wirklich löschen?"):
             self._recorder_service.clear_events()
             self._update_event_list()
-            self.var_status.set("Events gelöscht")
+            self.var_status.set("Liste geleert")
 
     def _center_window(self):
-        """Zentriert das Fenster über dem Parent."""
         self.window.update_idletasks()
         width = self.window.winfo_width()
         height = self.window.winfo_height()
         x = (self.window.winfo_screenwidth() // 2) - (width // 2)
         y = (self.window.winfo_screenheight() // 2) - (height // 2)
-        self.window.geometry(f'{width}x{height}+{x}+{y}')
-
+        self.window.geometry(f"{width}x{height}+{x}+{y}")
