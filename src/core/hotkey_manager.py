@@ -38,9 +38,9 @@ class HotkeyManager:
             
             keyboard.add_hotkey(hotkey_str, safe_callback, suppress=False)
             self._registered_hotkeys[hotkey_str] = safe_callback
-            print(f"✓ Hotkey registriert: {hotkey_str}")
+            print(f"OK: Hotkey registriert: {hotkey_str}")
         except Exception as e:
-            print(f"✗ Fehler beim Registrieren des Hotkeys {hotkey_str}: {e}")
+            print(f"FEHLER: Hotkey konnte nicht registriert werden {hotkey_str}: {e}")
             print(f"  Hinweis: App muss ggf. mit Admin-Rechten gestartet werden!")
 
     def unregister_hotkey(self, key: str, modifiers: Optional[List[str]] = None):
