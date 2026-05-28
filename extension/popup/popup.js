@@ -1,10 +1,14 @@
 const selectorInput = document.getElementById('selectorInput');
 const selectorStatus = document.getElementById('selectorStatus');
 const pickBtn = document.getElementById('pickBtn');
+const pickerDelayRow = document.getElementById('pickerDelayRow');
+const pickerDelay = document.getElementById('pickerDelay');
 const inputHours = document.getElementById('inputHours');
 const inputMinutes = document.getElementById('inputMinutes');
 const inputSeconds = document.getElementById('inputSeconds');
 const inputMs = document.getElementById('inputMs');
+const mouseButton = document.getElementById('mouseButton');
+const clickType = document.getElementById('clickType');
 const repeatInput = document.getElementById('repeatInput');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
@@ -25,7 +29,22 @@ function getIntervalMs() {
 }
 
 function getClickType() {
-  return document.querySelector('input[name="clickType"]:checked').value;
+  return clickType.value;
+}
+
+function getRepeatMode() {
+  return document.querySelector('input[name="repeatMode"]:checked').value;
+}
+
+function setRepeatMode(mode) {
+  const radio = document.querySelector(`input[name="repeatMode"][value="${mode}"]`);
+  if (radio) radio.checked = true;
+  repeatInput.disabled = mode !== 'count';
+}
+
+function getRepeatCount() {
+  if (getRepeatMode() === 'untilStopped') return -1;
+  return Math.max(1, parseInt(repeatInput.value, 10) || 1);
 }
 
 function showError(msg) {
@@ -48,7 +67,12 @@ function setRunning(running) {
   inputMinutes.disabled = running;
   inputSeconds.disabled = running;
   inputMs.disabled = running;
-  repeatInput.disabled = running;
+  mouseButton.disabled = running;
+  clickType.disabled = running;
+  document.querySelectorAll('input[name="repeatMode"]').forEach((radio) => {
+    radio.disabled = running;
+  });
+  repeatInput.disabled = running || getRepeatMode() !== 'count';
 }
 
 function updateStats(count, limit) {
@@ -57,17 +81,45 @@ function updateStats(count, limit) {
 }
 
 // Einstellungen laden
-chrome.storage.local.get(['selector', 'hours', 'minutes', 'seconds', 'ms', 'repeat', 'clickType'], (data) => {
+chrome.storage.local.get(
+  [
+    'selector',
+    'hours',
+    'minutes',
+    'seconds',
+    'ms',
+    'repeat',
+    'repeatMode',
+    'mouseButton',
+    'clickType',
+    'pickerDelay',
+    'pickedTagInfo',
+    'pickerStatus',
+  ],
+  (data) => {
   if (data.selector) selectorInput.value = data.selector;
   if (data.hours !== undefined) inputHours.value = data.hours;
   if (data.minutes !== undefined) inputMinutes.value = data.minutes;
   if (data.seconds !== undefined) inputSeconds.value = data.seconds;
   if (data.ms !== undefined) inputMs.value = data.ms;
   if (data.repeat !== undefined) repeatInput.value = data.repeat;
-  if (data.clickType) {
-    const radio = document.querySelector(`input[name="clickType"][value="${data.clickType}"]`);
-    if (radio) radio.checked = true;
+  if (data.repeatMode) setRepeatMode(data.repeatMode);
+  if (data.mouseButton) mouseButton.value = data.mouseButton;
+  if (data.pickerDelay !== undefined) pickerDelay.value = data.pickerDelay;
+  if (data.clickType) clickType.value = data.clickType;
+  if (data.pickerStatus === 'picked' && data.pickedTagInfo) {
+    selectorStatus.textContent = `Gewählt: ${data.pickedTagInfo}`;
   }
+  if (data.pickerStatus === 'active') {
+    selectorStatus.textContent = 'Picker läuft im Tab. Auf ein Element klicken oder Esc drücken.';
+  }
+  if (data.pickerStatus === 'cancelled') {
+    selectorStatus.textContent = 'Auswahl abgebrochen.';
+  }
+});
+
+document.querySelectorAll('input[name="repeatMode"]').forEach((radio) => {
+  radio.addEventListener('change', () => setRepeatMode(getRepeatMode()));
 });
 
 // Laufenden Status beim Öffnen abfragen
@@ -88,17 +140,31 @@ pickBtn.addEventListener('click', () => {
     cancelPicker();
     return;
   }
+
+  const delay = parseInt(pickerDelay.value) || 0;
   isPicking = true;
   pickBtn.classList.add('active');
-  selectorStatus.textContent = 'Klicke auf ein Element im Tab...';
+  pickerDelayRow.classList.remove('hidden');
+  chrome.storage.local.set({ pickerDelay: pickerDelay.value });
+  selectorStatus.textContent = delay > 0
+    ? `Picker startet im Tab in ${delay}s. Popup darf sich schließen.`
+    : 'Picker läuft im Tab. Element anklicken, Esc bricht ab.';
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs[0]) { cancelPicker(); return; }
-    chrome.tabs.sendMessage(tabs[0].id, { action: 'startPicker' }, (resp) => {
+    if (!tabs[0]) {
+      cancelPicker();
+      return;
+    }
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { action: 'startPicker', options: { delaySeconds: delay } },
+      (resp) => {
       if (chrome.runtime.lastError) {
         showError('Seite kann nicht verwendet werden (z.B. neue-Tab-Seite).');
         cancelPicker();
+        return;
       }
+      chrome.storage.local.set({ pickerStatus: 'active' });
     });
   });
 });
@@ -106,7 +172,8 @@ pickBtn.addEventListener('click', () => {
 function cancelPicker() {
   isPicking = false;
   pickBtn.classList.remove('active');
-  selectorStatus.textContent = '';
+  selectorStatus.textContent = 'Auswahl abgebrochen.';
+  chrome.storage.local.set({ pickerStatus: 'cancelled' });
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: 'cancelPicker' });
   });
@@ -119,6 +186,16 @@ chrome.runtime.onMessage.addListener((msg) => {
     selectorStatus.textContent = `Gewählt: ${msg.tagInfo}`;
     isPicking = false;
     pickBtn.classList.remove('active');
+    chrome.storage.local.set({
+      selector: msg.selector,
+      pickedTagInfo: msg.tagInfo,
+      pickerStatus: 'picked',
+    });
+  }
+  if (msg.action === 'pickerCancelled') {
+    isPicking = false;
+    pickBtn.classList.remove('active');
+    selectorStatus.textContent = 'Abgebrochen.';
   }
   if (msg.action === 'clickTick') {
     updateStats(msg.count, msg.limit);
@@ -151,8 +228,9 @@ startBtn.addEventListener('click', () => {
   const settings = {
     selector,
     interval,
+    mouseButton: mouseButton.value,
     clickType: getClickType(),
-    repeat: parseInt(repeatInput.value) || 0,
+    repeat: getRepeatCount(),
   };
 
   // Einstellungen speichern
@@ -163,6 +241,8 @@ startBtn.addEventListener('click', () => {
     seconds: inputSeconds.value,
     ms: inputMs.value,
     repeat: repeatInput.value,
+    repeatMode: getRepeatMode(),
+    mouseButton: settings.mouseButton,
     clickType: settings.clickType,
   });
 

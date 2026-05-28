@@ -13,7 +13,7 @@
   </div>
 
   <div class="section">
-    <label class="label">Element-Selector (CSS)</label>
+    <label class="label">Ziel-Element</label>
     <div class="input-row">
       <input
         id="selectorInput"
@@ -27,10 +27,16 @@
       </button>
     </div>
     <div id="selectorStatus" class="status-hint"></div>
+    <div id="pickerDelayRow" class="delay-row">
+      <label class="label" style="margin:0">Verzögerung</label>
+      <input id="pickerDelay" type="number" class="input delay-input" min="0" max="10" value="3" />
+      <span class="interval-label">sek</span>
+      <span class="delay-hint">— Zeit zum Öffnen von Menüs</span>
+    </div>
   </div>
 
   <div class="section">
-    <label class="label">Klick-Interval</label>
+    <label class="label">Klick-Intervall</label>
     <div class="interval-row">
       <div class="interval-group">
         <input id="inputHours" type="number" class="input interval-input" min="0" max="99" value="0" />
@@ -52,23 +58,38 @@
   </div>
 
   <div class="section">
-    <label class="label">Klick-Typ</label>
-    <div class="radio-row">
-      <label class="radio-label">
-        <input type="radio" name="clickType" value="left" checked /> Links
-      </label>
-      <label class="radio-label">
-        <input type="radio" name="clickType" value="right" /> Rechts
-      </label>
-      <label class="radio-label">
-        <input type="radio" name="clickType" value="double" /> Doppel
-      </label>
+    <label class="label">Klick-Optionen</label>
+    <div class="option-grid">
+      <div>
+        <span class="sub-label">Maus-Taste</span>
+        <select id="mouseButton" class="input">
+          <option value="left">Links</option>
+          <option value="right">Rechts</option>
+          <option value="middle">Mittel</option>
+        </select>
+      </div>
+      <div>
+        <span class="sub-label">Klick-Typ</span>
+        <select id="clickType" class="input">
+          <option value="single">Single</option>
+          <option value="double">Double</option>
+          <option value="triple">Triple</option>
+        </select>
+      </div>
     </div>
   </div>
 
   <div class="section">
-    <label class="label">Anzahl Klicks <span class="hint">(0 = unbegrenzt)</span></label>
-    <input id="repeatInput" type="number" class="input" min="0" value="0" />
+    <label class="label">Wiederholung</label>
+    <div class="radio-row">
+      <label class="radio-label">
+        <input type="radio" name="repeatMode" value="untilStopped" checked /> Bis zum Stopp
+      </label>
+      <label class="radio-label">
+        <input type="radio" name="repeatMode" value="count" /> Anzahl
+      </label>
+    </div>
+    <input id="repeatInput" type="number" class="input repeat-input" min="1" value="1" disabled />
   </div>
 
   <div id="statsBar" class="stats-bar hidden">

@@ -5,9 +5,9 @@
 }
 
 body {
-  width: 320px;
-  background: #1a1a2e;
-  color: #e0e0e0;
+  width: 360px;
+  background: #111315;
+  color: #edf2f4;
   font-family: 'Segoe UI', Arial, sans-serif;
   font-size: 13px;
   padding: 12px;
@@ -25,8 +25,7 @@ body {
 .title {
   font-size: 18px;
   font-weight: 700;
-  color: #7b68ee;
-  letter-spacing: 1px;
+  color: #edf2f4;
 }
 
 .subtitle {
@@ -50,6 +49,13 @@ body {
   margin-bottom: 5px;
 }
 
+.sub-label {
+  display: block;
+  color: #9aa6ad;
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+
 .hint {
   font-size: 10px;
   color: #555;
@@ -58,10 +64,10 @@ body {
 
 .input {
   width: 100%;
-  background: #16213e;
-  border: 1px solid #2d2d4e;
+  background: #15191c;
+  border: 1px solid #3b454b;
   border-radius: 4px;
-  color: #e0e0e0;
+  color: #edf2f4;
   padding: 6px 8px;
   font-size: 13px;
   outline: none;
@@ -69,7 +75,7 @@ body {
 }
 
 .input:focus {
-  border-color: #7b68ee;
+  border-color: #4fb3bf;
 }
 
 .input-row {
@@ -84,6 +90,12 @@ body {
 .interval-row {
   display: flex;
   gap: 6px;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .interval-group {
@@ -107,7 +119,8 @@ body {
 
 .radio-row {
   display: flex;
-  gap: 14px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .radio-label {
@@ -119,20 +132,43 @@ body {
 }
 
 .radio-label input[type="radio"] {
-  accent-color: #7b68ee;
+  accent-color: #4fb3bf;
   cursor: pointer;
+}
+
+.repeat-input:disabled {
+  opacity: 0.55;
 }
 
 .status-hint {
   font-size: 11px;
-  color: #7b68ee;
+  color: #4fb3bf;
   margin-top: 4px;
   min-height: 14px;
 }
 
+.delay-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 7px;
+  flex-wrap: wrap;
+}
+
+.delay-input {
+  width: 46px !important;
+  text-align: center;
+  padding: 4px 6px;
+}
+
+.delay-hint {
+  font-size: 11px;
+  color: #555;
+}
+
 .stats-bar {
-  background: #16213e;
-  border: 1px solid #2d2d4e;
+  background: #1b1f22;
+  border: 1px solid #3b454b;
   border-radius: 4px;
   padding: 5px 10px;
   font-size: 12px;
@@ -142,7 +178,7 @@ body {
 }
 
 .stats-bar span {
-  color: #7b68ee;
+  color: #4fb3bf;
   font-weight: 600;
 }
 
@@ -169,8 +205,8 @@ body {
 }
 
 .btn-start {
-  background: #7b68ee;
-  color: #fff;
+  background: #87c96b;
+  color: #081013;
 }
 
 .btn-start:hover {
@@ -178,8 +214,8 @@ body {
 }
 
 .btn-stop {
-  background: #e05555;
-  color: #fff;
+  background: #f06d62;
+  color: #081013;
 }
 
 .btn-stop:hover {
@@ -190,19 +226,19 @@ body {
   flex: none;
   width: 36px;
   padding: 6px;
-  background: #2d2d4e;
-  color: #e0e0e0;
+  background: #252b2f;
+  color: #edf2f4;
   font-size: 15px;
   border-radius: 4px;
 }
 
 .btn-pick:hover {
-  background: #3a3a60;
+  background: #30383d;
 }
 
 .btn-pick.active {
-  background: #7b68ee;
-  color: #fff;
+  background: #4fb3bf;
+  color: #081013;
 }
 
 .error {
