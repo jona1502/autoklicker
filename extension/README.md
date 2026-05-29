@@ -56,12 +56,26 @@ Das Klicken läuft im Hintergrund weiter, auch wenn du in anderen Apps arbeitest
 
 ---
 
+## Funktionstest
+
+Zum technischen Testen kann `test-page.html` lokal im Browser geöffnet werden.
+
+1. Extension laden
+2. `extension/test-page.html` im Browser öffnen
+3. Selector `#likeButton` eintragen
+4. AutoKlicker starten
+
+Wenn der Zähler steigt, kommt der Klick technisch an. Wenn `isTrusted` auf `false` steht, wurde der Klick per Script erzeugt. Einige Webseiten ignorieren solche Klicks absichtlich.
+
+---
+
 ## Dateistruktur
 
 ```
 extension/
 ├── manifest.json          # Manifest V3
 ├── manifest.v2.json       # Legacy Manifest V2
+├── test-page.html         # Lokale Testseite fuer Klick-Events
 ├── popup/
 │   ├── popup.html         # UI
 │   ├── popup.js           # UI-Logik

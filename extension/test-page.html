@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoKlicker Testseite</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #111315;
+      color: #edf2f4;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+
+    main {
+      width: min(680px, calc(100vw - 32px));
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0 0 12px;
+    }
+
+    p {
+      color: #9aa6ad;
+      margin: 0 0 20px;
+      line-height: 1.5;
+    }
+
+    button {
+      width: 100%;
+      min-height: 72px;
+      border: 1px solid #3b454b;
+      border-radius: 8px;
+      background: #4fb3bf;
+      color: #081013;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    dl {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 10px 16px;
+      margin: 20px 0 0;
+      padding: 16px;
+      border: 1px solid #3b454b;
+      border-radius: 8px;
+      background: #1b1f22;
+    }
+
+    dt {
+      color: #9aa6ad;
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 700;
+    }
+
+    code {
+      color: #87c96b;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>AutoKlicker Testseite</h1>
+    <p>
+      Lade die Extension, waehle als Selector <code>#likeButton</code> und starte den Klicker.
+      Diese Seite zeigt, ob Klicks technisch ankommen und ob sie als vertrauenswuerdige Nutzereingabe gelten.
+    </p>
+
+    <button id="likeButton" type="button">Test-Like</button>
+
+    <dl>
+      <dt>Klicks</dt>
+      <dd id="count">0</dd>
+      <dt>Letzter Event</dt>
+      <dd id="lastEvent">-</dd>
+      <dt>isTrusted</dt>
+      <dd id="trusted">-</dd>
+    </dl>
+  </main>
+
+  <script>
+    const countEl = document.getElementById('count');
+    const lastEventEl = document.getElementById('lastEvent');
+    const trustedEl = document.getElementById('trusted');
+    const likeButton = document.getElementById('likeButton');
+    let count = 0;
+
+    likeButton.addEventListener('click', (event) => {
+      count += 1;
+      countEl.textContent = String(count);
+      lastEventEl.textContent = event.type;
+      trustedEl.textContent = event.isTrusted ? 'true' : 'false';
+    });
+  </script>
+</body>
+</html>
