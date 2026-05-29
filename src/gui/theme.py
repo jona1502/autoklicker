@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-APP_VERSION = "1.1.1"
+APP_VERSION = "1.1.2"
 APP_NAME = "AutoKlicker"
 
 COLORS = {

@@ -133,10 +133,10 @@ Bei jedem Version-Tag baut GitHub Actions automatisch `AutoKlicker.exe` und ver√
 ```bash
 # Version in src/gui/theme.py anpassen (APP_VERSION), dann:
 git add .
-git commit -m "Release v1.1.1"
-git tag v1.1.1
+git commit -m "Release v1.1.2"
+git tag v1.1.2
 git push origin main
-git push origin v1.1.1
+git push origin v1.1.2
 ```
 
 Nach dem Push des Tags erscheint unter **Releases** auf GitHub die fertige EXE zum Download.

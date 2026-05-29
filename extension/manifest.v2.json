@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "AutoKlicker Legacy",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Auto-click buttons and elements in your browser tab without moving your mouse.",
   "permissions": [
     "activeTab",

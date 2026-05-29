@@ -16,6 +16,7 @@ const statsBar = document.getElementById('statsBar');
 const clickCount = document.getElementById('clickCount');
 const limitInfo = document.getElementById('limitInfo');
 const errorMsg = document.getElementById('errorMsg');
+const intervalWarning = document.getElementById('intervalWarning');
 
 let isRunning = false;
 let isPicking = false;
@@ -54,6 +55,22 @@ function showError(msg) {
 
 function clearError() {
   errorMsg.classList.add('hidden');
+}
+
+function updateIntervalWarning() {
+  const interval = getIntervalMs();
+  const hasAnyValue = [inputHours, inputMinutes, inputSeconds, inputMs].some((input) => {
+    return (parseInt(input.value, 10) || 0) > 0;
+  });
+
+  if (!hasAnyValue || interval >= 1000) {
+    intervalWarning.classList.add('hidden');
+    intervalWarning.textContent = '';
+    return;
+  }
+
+  intervalWarning.textContent = 'Sehr kurze oder exakt gleichmaessige Intervalle koennen von Webseiten ignoriert oder gefiltert werden. Script-Klicks bleiben trotzdem isTrusted=false.';
+  intervalWarning.classList.remove('hidden');
 }
 
 function setRunning(running) {
@@ -116,6 +133,11 @@ chrome.storage.local.get(
   if (data.pickerStatus === 'cancelled') {
     selectorStatus.textContent = 'Auswahl abgebrochen.';
   }
+  updateIntervalWarning();
+});
+
+[inputHours, inputMinutes, inputSeconds, inputMs].forEach((input) => {
+  input.addEventListener('input', updateIntervalWarning);
 });
 
 document.querySelectorAll('input[name="repeatMode"]').forEach((radio) => {
@@ -224,6 +246,7 @@ startBtn.addEventListener('click', () => {
     showError('Interval muss mindestens 50 ms sein.');
     return;
   }
+  updateIntervalWarning();
 
   const settings = {
     selector,
