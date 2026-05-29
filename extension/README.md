@@ -50,9 +50,9 @@ Das Klicken läuft im Hintergrund weiter, auch wenn du in anderen Apps arbeitest
 
 | Problem | Ursache |
 |---|---|
-| Klick hat keine Wirkung | Seite prüft `event.isTrusted` (Anti-Bot) |
+| Klick hat keine Wirkung | Seite prüft `event.isTrusted` (Anti-Bot) und ignoriert per Script erzeugte Klicks |
 | Extension nicht verfügbar | Browser-interne Seiten (`chrome://`, `about:`) |
-| Element nicht gefunden | Selector stimmt nicht mehr (z.B. nach Seitenupdate) |
+| Element nicht gefunden | Selector stimmt nicht mehr (z.B. nach Seitenupdate) → Element neu auswählen |
 
 ---
 

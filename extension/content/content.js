@@ -12,6 +12,13 @@
   let pickerHud = null;
 
   // ── Klick-Ausführung ──────────────────────────────────────────────────────
+  //
+  // Geklickt wird über synthetische DOM-Events. Damit moderne Frameworks (React
+  // u.a.) und Seiten wie TikTok LIVE die Klicks möglichst akzeptieren, wird eine
+  // vollständige, realistische Event-Sequenz mit echten Koordinaten gefeuert:
+  // pointerover/enter → pointermove/mousemove → pointerdown/mousedown →
+  // pointerup/mouseup → click. Hinweis: solche Events bleiben technisch
+  // isTrusted=false; Seiten mit strenger Anti-Bot-Prüfung können sie ignorieren.
 
   function getButtonCode(button) {
     if (button === 'middle') return 1;
@@ -25,38 +32,71 @@
     return 1;
   }
 
-  function dispatchSingleClick(el, mouseButton) {
+  function clickCoordinates(el) {
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    return {
+      clientX: cx,
+      clientY: cy,
+      screenX: cx + window.screenX,
+      screenY: cy + window.screenY,
+    };
+  }
+
+  function dispatchSingleClick(el, mouseButton, detail) {
     const btn = getButtonCode(mouseButton);
-    const opts = {
+    const coords = clickCoordinates(el);
+    const base = {
       bubbles: true,
       cancelable: true,
+      composed: true,
+      view: window,
       button: btn,
       buttons: getButtonsMask(btn),
-      view: window,
+      detail: detail || 1,
+      ...coords,
     };
-    // Pointer-Events zuerst (React und viele moderne Frameworks hören hier)
-    el.dispatchEvent(new PointerEvent('pointerover',  { bubbles: true, cancelable: true }));
-    el.dispatchEvent(new PointerEvent('pointerenter', { bubbles: true, cancelable: false }));
-    el.dispatchEvent(new PointerEvent('pointerdown',  { ...opts, pointerId: 1, pointerType: 'mouse' }));
-    el.dispatchEvent(new MouseEvent('mousedown', opts));
-    el.dispatchEvent(new PointerEvent('pointerup',    { ...opts, pointerId: 1, pointerType: 'mouse' }));
-    el.dispatchEvent(new MouseEvent('mouseup', opts));
+    const pointer = {
+      ...base,
+      pointerId: 1,
+      pointerType: 'mouse',
+      isPrimary: true,
+      width: 1,
+      height: 1,
+      pressure: 0.5,
+    };
+
+    // Hover-/Move-Phase (React und viele Frameworks erwarten diese Reihenfolge)
+    el.dispatchEvent(new PointerEvent('pointerover',  pointer));
+    el.dispatchEvent(new PointerEvent('pointerenter', { ...pointer, bubbles: false }));
+    el.dispatchEvent(new PointerEvent('pointermove',  { ...pointer, buttons: 0, pressure: 0 }));
+    el.dispatchEvent(new MouseEvent('mousemove',      { ...base, buttons: 0 }));
+    // Press-/Release-Phase
+    el.dispatchEvent(new PointerEvent('pointerdown',  pointer));
+    el.dispatchEvent(new MouseEvent('mousedown',      base));
+    el.dispatchEvent(new PointerEvent('pointerup',    { ...pointer, buttons: 0, pressure: 0 }));
+    el.dispatchEvent(new MouseEvent('mouseup',        { ...base, buttons: 0 }));
+
     if (mouseButton === 'right') {
-      el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, view: window }));
+      el.dispatchEvent(new MouseEvent('contextmenu', { ...base, buttons: 0 }));
     } else if (mouseButton === 'middle') {
-      el.dispatchEvent(new MouseEvent('auxclick', { ...opts, buttons: 0 }));
+      el.dispatchEvent(new MouseEvent('auxclick', { ...base, buttons: 0 }));
     } else {
-      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      el.dispatchEvent(new MouseEvent('click', { ...base, buttons: 0 }));
     }
   }
 
   function dispatchClick(el, mouseButton, clickType) {
     const clickTimes = clickType === 'triple' ? 3 : clickType === 'double' ? 2 : 1;
     for (let i = 0; i < clickTimes; i++) {
-      dispatchSingleClick(el, mouseButton);
+      dispatchSingleClick(el, mouseButton, i + 1);
     }
     if (clickTimes >= 2 && mouseButton === 'left') {
-      el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, button: 0, view: window }));
+      el.dispatchEvent(new MouseEvent('dblclick', {
+        bubbles: true, cancelable: true, composed: true, view: window,
+        button: 0, detail: 2, ...clickCoordinates(el),
+      }));
     }
   }
 
