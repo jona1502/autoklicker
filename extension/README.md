@@ -4,15 +4,25 @@ Auto-klickt Buttons und DOM-Elemente direkt im Browser-Tab — ohne den Mauszeig
 
 ## Installation
 
-### Chrome / Edge / Brave (Manifest V2)
+### Brave
 
-> **Hinweis:** Chrome zeigt bei MV2-Extensions eine Warnung an, da Google MV2 auslaufen lässt. Die Extension funktioniert aber weiterhin. Für zuverlässigen Langzeit-Einsatz empfiehlt sich **Firefox**.
+1. [AutoKlicker-Brave-MV3.zip](https://github.com/jona1502/autoklicker/releases/latest) aus den Releases herunterladen
+2. ZIP entpacken
+3. Brave öffnen → `brave://extensions/`
+4. **Entwicklermodus** (oben rechts) aktivieren
+5. **"Entpackte Erweiterung laden"** → entpackten `extension`-Ordner auswählen
 
-1. [AutoKlicker-Extension.zip](https://github.com/jona1502/autoklicker/releases/latest) aus den Releases herunterladen
+### Chrome / Edge
+
+1. [AutoKlicker-Chrome-MV3.zip](https://github.com/jona1502/autoklicker/releases/latest) aus den Releases herunterladen
 2. ZIP entpacken
 3. Chrome öffnen → `chrome://extensions/`
 4. **Entwicklermodus** (oben rechts) aktivieren
 5. **"Entpackte Erweiterung laden"** → entpackten `extension`-Ordner auswählen
+
+### Legacy Manifest V2
+
+`AutoKlicker-Legacy-MV2.zip` ist nur für alte Chromium-basierte Browser gedacht, die Manifest V2 noch laden. Aktuelle Chrome-Versionen unterstützen MV2 nicht mehr. Brave unterstützt MV2 nur eingeschränkt für ausgewählte Erweiterungen; für AutoKlicker sollte dort die MV3-Version verwendet werden.
 
 ### Firefox
 
@@ -50,7 +60,8 @@ Das Klicken läuft im Hintergrund weiter, auch wenn du in anderen Apps arbeitest
 
 ```
 extension/
-├── manifest.json          # Manifest V2
+├── manifest.json          # Manifest V3
+├── manifest.v2.json       # Legacy Manifest V2
 ├── popup/
 │   ├── popup.html         # UI
 │   ├── popup.js           # UI-Logik

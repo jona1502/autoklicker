@@ -140,6 +140,7 @@ git push origin v1.1.0
 ```
 
 Nach dem Push des Tags erscheint unter **Releases** auf GitHub die fertige EXE zum Download.
+Zusätzlich werden die Browser-Pakete `AutoKlicker-Chrome-MV3.zip`, `AutoKlicker-Brave-MV3.zip` und `AutoKlicker-Legacy-MV2.zip` veröffentlicht.
 
 Lokaler Build (ohne GitHub):
 

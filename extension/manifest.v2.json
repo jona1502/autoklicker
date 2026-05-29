@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+  "name": "AutoKlicker Legacy",
+  "version": "1.1.0",
+  "description": "Auto-click buttons and elements in your browser tab without moving your mouse.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "<all_urls>"
+  ],
+  "browser_action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "AutoKlicker"
+  },
+  "background": {
+    "scripts": ["background/background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

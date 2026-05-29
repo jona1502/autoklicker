@@ -29,8 +29,20 @@ jobs:
       - name: EXE bauen
         run: pyinstaller --noconfirm autoklicker.spec
 
-      - name: Extension packen
-        run: Compress-Archive -Path extension\* -DestinationPath dist\AutoKlicker-Extension.zip
+      - name: Chrome MV3 Extension packen
+        run: Compress-Archive -Path extension\* -DestinationPath dist\AutoKlicker-Chrome-MV3.zip
+        shell: pwsh
+
+      - name: Brave MV3 Extension packen
+        run: Compress-Archive -Path extension\* -DestinationPath dist\AutoKlicker-Brave-MV3.zip
+        shell: pwsh
+
+      - name: Legacy MV2 Extension packen
+        run: |
+          Copy-Item -Recurse extension dist\extension-mv2
+          Copy-Item dist\extension-mv2\manifest.v2.json dist\extension-mv2\manifest.json -Force
+          Remove-Item dist\extension-mv2\manifest.v2.json
+          Compress-Archive -Path dist\extension-mv2\* -DestinationPath dist\AutoKlicker-Legacy-MV2.zip
         shell: pwsh
 
       - name: Release erstellen
@@ -40,6 +52,8 @@ jobs:
           generate_release_notes: true
           files: |
             dist/AutoKlicker.exe
-            dist/AutoKlicker-Extension.zip
+            dist/AutoKlicker-Chrome-MV3.zip
+            dist/AutoKlicker-Brave-MV3.zip
+            dist/AutoKlicker-Legacy-MV2.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
