@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-APP_VERSION = "1.1.2"
+APP_VERSION = "1.1.4"
 APP_NAME = "AutoKlicker"
 
 COLORS = {
@@ -184,3 +184,4 @@ def configure_tk_widget(widget: tk.Widget, **kwargs) -> None:
         widget.configure(**{k: v for k, v in defaults.items() if k in widget.keys() or k in ("bg", "fg")})
     except tk.TclError:
         pass
+
