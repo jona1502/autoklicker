@@ -1,4 +1,7 @@
 (() => {
+  if (window.__autoKlickerContentLoaded) return;
+  window.__autoKlickerContentLoaded = true;
+
   let timer = null;
   let clickCount = 0;
   let currentSettings = null;
@@ -468,3 +471,4 @@
     return true;
   });
 })();
+

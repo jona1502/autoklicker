@@ -97,6 +97,67 @@ function updateStats(count, limit) {
   limitInfo.textContent = limit > 0 ? ` / ${limit}` : '';
 }
 
+
+function getActiveTab(callback) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    callback(tabs && tabs[0] ? tabs[0] : null);
+  });
+}
+
+function canUseContentScript(tab) {
+  if (!tab || !tab.id) return false;
+  if (!tab.url) return true;
+  return /^(https?:|file:)/.test(tab.url);
+}
+
+function injectContentScript(tabId, callback) {
+  if (!chrome.scripting || !chrome.scripting.executeScript) {
+    callback(false);
+    return;
+  }
+
+  chrome.scripting.executeScript(
+    { target: { tabId }, files: ['content/content.js'] },
+    () => callback(!chrome.runtime.lastError)
+  );
+}
+
+function sendToActiveTab(message, callback, options = {}) {
+  const allowInject = options.allowInject !== false;
+
+  getActiveTab((tab) => {
+    if (!canUseContentScript(tab)) {
+      callback(null, 'Diese Seite kann nicht verwendet werden. Browser-interne Seiten sind gesperrt.');
+      return;
+    }
+
+    chrome.tabs.sendMessage(tab.id, message, (resp) => {
+      const firstError = chrome.runtime.lastError;
+      if (!firstError) {
+        callback(resp, null);
+        return;
+      }
+
+      if (!allowInject) {
+        callback(null, firstError.message);
+        return;
+      }
+
+      injectContentScript(tab.id, (ok) => {
+        if (!ok) {
+          callback(null, 'Content-Script konnte nicht geladen werden. Seite neu laden und erneut versuchen.');
+          return;
+        }
+
+        chrome.tabs.sendMessage(tab.id, message, (retryResp) => {
+          const retryError = chrome.runtime.lastError;
+          callback(retryResp, retryError ? retryError.message : null);
+        });
+      });
+    });
+  });
+}
+
 // Einstellungen laden
 chrome.storage.local.get(
   [
@@ -145,16 +206,12 @@ document.querySelectorAll('input[name="repeatMode"]').forEach((radio) => {
 });
 
 // Laufenden Status beim Öffnen abfragen
-chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  if (!tabs[0]) return;
-  chrome.tabs.sendMessage(tabs[0].id, { action: 'getStatus' }, (resp) => {
-    if (chrome.runtime.lastError) return;
-    if (resp && resp.running) {
-      setRunning(true);
-      updateStats(resp.count, resp.limit);
-    }
-  });
-});
+sendToActiveTab({ action: 'getStatus' }, (resp) => {
+  if (resp && resp.running) {
+    setRunning(true);
+    updateStats(resp.count, resp.limit);
+  }
+}, { allowInject: true });
 
 // Element-Picker
 pickBtn.addEventListener('click', () => {
@@ -172,23 +229,17 @@ pickBtn.addEventListener('click', () => {
     ? `Picker startet im Tab in ${delay}s. Popup darf sich schließen.`
     : 'Picker läuft im Tab. Element anklicken, Esc bricht ab.';
 
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs[0]) {
-      cancelPicker();
-      return;
-    }
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { action: 'startPicker', options: { delaySeconds: delay } },
-      (resp) => {
-      if (chrome.runtime.lastError) {
-        showError('Seite kann nicht verwendet werden (z.B. neue-Tab-Seite).');
+  sendToActiveTab(
+    { action: 'startPicker', options: { delaySeconds: delay } },
+    (_resp, error) => {
+      if (error) {
+        showError(error);
         cancelPicker();
         return;
       }
       chrome.storage.local.set({ pickerStatus: 'active' });
-    });
-  });
+    }
+  );
 });
 
 function cancelPicker() {
@@ -196,9 +247,7 @@ function cancelPicker() {
   pickBtn.classList.remove('active');
   selectorStatus.textContent = 'Auswahl abgebrochen.';
   chrome.storage.local.set({ pickerStatus: 'cancelled' });
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { action: 'cancelPicker' });
-  });
+  sendToActiveTab({ action: 'cancelPicker' }, () => {}, { allowInject: false });
 }
 
 // Nachrichten vom Content-Script empfangen
@@ -269,26 +318,21 @@ startBtn.addEventListener('click', () => {
     clickType: settings.clickType,
   });
 
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs[0]) { showError('Kein aktiver Tab gefunden.'); return; }
-    chrome.tabs.sendMessage(tabs[0].id, { action: 'start', settings }, (resp) => {
-      if (chrome.runtime.lastError) {
-        showError('Content-Script nicht verfügbar. Seite neu laden und erneut versuchen.');
-        return;
-      }
-      if (resp && resp.ok) {
-        updateStats(0, settings.repeat);
-        setRunning(true);
-      }
-    });
+  sendToActiveTab({ action: 'start', settings }, (resp, error) => {
+    if (error) {
+      showError(error);
+      return;
+    }
+    if (resp && resp.ok) {
+      updateStats(0, settings.repeat);
+      setRunning(true);
+    }
   });
 });
 
 // Stop
 stopBtn.addEventListener('click', () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs[0]) return;
-    chrome.tabs.sendMessage(tabs[0].id, { action: 'stop' });
-  });
+  sendToActiveTab({ action: 'stop' }, () => {}, { allowInject: false });
   setRunning(false);
 });
+
