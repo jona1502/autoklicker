@@ -5,7 +5,7 @@ Version:        %{app_version}
 Release:        1%{?dist}
 Summary:        AutoKlicker with hotkeys and recording support
 
-License:        LicenseRef-Proprietary
+License:        LicenseRef-Proprietary-Freeware
 URL:            https://github.com/jona1502/autoklicker
 Source0:        autoklicker
 Source1:        autoklicker.desktop

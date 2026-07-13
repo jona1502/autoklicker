@@ -178,4 +178,6 @@ sudo dnf install ./autoklicker-*.rpm
 
 ## Lizenz
 
-Dieses Projekt ist für den persönlichen Gebrauch bestimmt.
+AutoKlicker darf als offizieller Release-Download genutzt werden. Der Quellcode
+darf ohne ausdrueckliche Erlaubnis nicht kopiert, veraendert, weiterverteilt
+oder als eigene Version veroeffentlicht werden. Details stehen in `LICENSE`.
