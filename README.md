@@ -126,9 +126,9 @@ autoklicker/
 - Auf Windows funktionieren Hotkeys am zuverlässigsten
 - Die Settings werden automatisch in `data/settings.json` gespeichert
 
-## GitHub Release (EXE)
+## GitHub Release (Windows und Fedora Linux)
 
-Bei jedem Version-Tag baut GitHub Actions automatisch `AutoKlicker.exe` und veröffentlicht sie als Release.
+Bei jedem Version-Tag baut GitHub Actions automatisch `AutoKlicker.exe`, ein Linux-Binary und ein Fedora-RPM-Paket und veröffentlicht sie als Release.
 
 ```bash
 # Version in src/gui/theme.py anpassen (APP_VERSION), dann:
@@ -139,13 +139,30 @@ git push origin main
 git push origin v1.1.2
 ```
 
-Nach dem Push des Tags erscheint unter **Releases** auf GitHub die fertige EXE zum Download.
+Nach dem Push des Tags erscheinen unter **Releases** die fertigen Downloads:
+- `AutoKlicker.exe` fuer Windows
+- `autoklicker` als direkt ausfuehrbares Linux-Binary
+- `autoklicker-<version>-1.fc*.x86_64.rpm` fuer Fedora
+
 Zusätzlich werden die Browser-Pakete `AutoKlicker-Chrome-MV3.zip`, `AutoKlicker-Brave-MV3.zip` und `AutoKlicker-Legacy-MV2.zip` veröffentlicht.
 
-Lokaler Build (ohne GitHub):
+Lokaler Windows-Build (ohne GitHub):
 
 ```bash
 build.bat
+```
+
+Lokaler Linux-Build:
+
+```bash
+pip install -r requirements.txt
+pyinstaller --noconfirm --clean autoklicker-linux.spec
+```
+
+Fedora-RPM aus dem GitHub-Release installieren:
+
+```bash
+sudo dnf install ./autoklicker-*.rpm
 ```
 
 ## Python oder C#?
@@ -162,4 +179,3 @@ build.bat
 ## Lizenz
 
 Dieses Projekt ist für den persönlichen Gebrauch bestimmt.
-

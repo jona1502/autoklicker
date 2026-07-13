@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AutoKlicker
+Comment=AutoKlicker mit Hotkeys und Aufnahmefunktion
+Exec=autoklicker
+Icon=autoklicker
+Categories=Utility;
+Terminal=false
